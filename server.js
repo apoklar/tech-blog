@@ -25,16 +25,17 @@ const sess = {
 };
 
 app.use(session(sess));
+app.engine('handlebars', hbs.engine);
+app.set('view engine', 'handlebars');
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // turn on routes
-app.use(routes);
+// app.use(routes);
 
-app.engine('handlebars', hbs.engine);
-app.set('view engine', 'handlebars');
+app.use(require("./routes"));
 
 // turn on connection to database and server
 sequelize.sync({ force: true }).then(() => {
