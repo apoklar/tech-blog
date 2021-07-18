@@ -14,6 +14,7 @@ router.get('/', withAuth, (req, res) => {
         'post_url',
         'title',
         'created_at',
+        [sequelize.literal('(SELECT COUNT(*) FROM vote WHERE post.id = vote.post_id)'), 'vote_count']
       ],
       include: [
         {
@@ -43,6 +44,9 @@ router.get('/', withAuth, (req, res) => {
 
 router.get('/edit/:id', withAuth, (req, res) => {
   Post.findByPk(req.params.id, {
+    where: {
+      id: req.params.id
+    },
     attributes: [
       'id',
       'post_url',
@@ -80,5 +84,28 @@ router.get('/edit/:id', withAuth, (req, res) => {
       res.status(500).json(err);
     });
 });
+
+router.get('/edituser', withAuth, (req, res) => {
+
+  User.findOne({
+    attributes: { exclude: ['password'] },
+    where: {
+      id: req.session.user_id
+    }
+  })
+    .then(dbUserData => {
+      if (!dbUserData) {
+        res.status(404).json({ message: 'No user found with this id' });
+        return;
+      }
+      const user = dbUserData.get({ plain: true });
+      res.render('edit-user', {user, loggedIn: true});
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).json(err);
+    })
+});
+
 
 module.exports = router;
